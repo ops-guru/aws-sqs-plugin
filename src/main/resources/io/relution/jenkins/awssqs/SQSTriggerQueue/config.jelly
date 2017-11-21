@@ -48,6 +48,11 @@
 			method="validate" />
 		<f:advanced title="${%Advanced}">
 			<f:entry
+				title="${%UUID}"
+				field="uuid">
+				<f:textbox />
+			</f:entry>
+			<f:entry
 				title="${%Request wait time [s]}"
 				field="waitTimeSeconds">
 				<f:textbox default="20" />
