@@ -200,29 +200,35 @@ If you've set up everything correctly pushing a change to the Git repository on 
 SQS message attributes can be passed as job parameters.
 
 Parameter names passed to job have 'sqs_' prefix like sqs_MessageParameterName
-String type and Numeric type both passed to job as is.
-Print example: echo "Value: ${params.sqs_MessageParameterName}
+
+String type and Numeric type both passed to job as is. Print example:
+```Shell
+echo "Value: ${params.sqs_MessageParameterName}
+```
 
 Bimary type passed as hex string. This data could be converted back
 to byte[] inside job groovy script as
 
+```Shell
 def byte[] MsgParBinarybyteArray = javax.xml.bind.DatatypeConverter.parseHexBinary(params.sqs_MsgParBinary)
+```
 
-Array (list) type is not implemented because they are not implemented to AWS SQS API
+Array (list) types are not implemented because they are not implemented to AWS SQS API
 
-Jenkins SECURITY-170
-
-https://jenkins.io/security/advisory/2016-05-11/
+Jenkins SECURITY-170 https://jenkins.io/security/advisory/2016-05-11/
 
 According to description: Jenkins now filters the build parameters based on what is defined on the job.
 But aws-sqs-plugin pass all sqs-message parameters using official method 
 jenkins.model.ParameterizedJobMixIn.scheduleBuild2() without any modifications.
 
-http://javadoc.jenkins.io/jenkins/model/ParameterizedJobMixIn.html
-
 Note that parameters are passed but Jenkins system log contains records:
 ```Shell
-Skipped parameter `sqs_MessageParameterName` as it is undefined on `JobName`. Set `-Dhudson.model.ParametersAction.keepUndefinedParameters=true` to allow undefined parameters to be injected as environment variables or `-Dhudson.model.ParametersAction.safeParameters=[comma-separated list]` to whitelist specific parameter names, even though it represents a security breach or `-Dhudson.model.ParametersAction.keepUndefinedParameters=false` to no longer show this message.
+Skipped parameter `sqs_MessageParameterName` as it is undefined on `JobName`. \
+Set `-Dhudson.model.ParametersAction.keepUndefinedParameters=true` to allow \
+undefined parameters to be injected as environment variables or \
+`-Dhudson.model.ParametersAction.safeParameters=[comma-separated list]` \
+to whitelist specific parameter names, even though it represents a security breach or \
+`-Dhudson.model.ParametersAction.keepUndefinedParameters=false` to no longer show this message.
 ```
 
 
@@ -275,3 +281,5 @@ limitations under the License.
 # Maintainers
 - [Markus Pfeiffer](https://github.com/mpfeiffermway) (M-Way Solutions GmbH) – 2016
 - [Nick Grealy](nickgrealy@gmail.com)
+- [Victor Timohin](vvt@opsguru.io)
+- [Max Kovgan](max@opsguru.io)
