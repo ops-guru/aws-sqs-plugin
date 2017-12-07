@@ -8,6 +8,7 @@ import com.amazonaws.services.sqs.model.ReceiveMessageRequest;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Collections;
 
 
 public class RequestFactoryImpl implements RequestFactory {
@@ -17,6 +18,7 @@ public class RequestFactoryImpl implements RequestFactory {
         final ReceiveMessageRequest request = new ReceiveMessageRequest(queue.getUrl());
         request.setMaxNumberOfMessages(queue.getMaxNumberOfMessages());
         request.setWaitTimeSeconds(queue.getWaitTimeSeconds());
+        request.setMessageAttributeNames(Collections.singleton("All"));
         return request;
     }
 

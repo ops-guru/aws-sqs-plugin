@@ -17,6 +17,7 @@
 package io.relution.jenkins.awssqs;
 
 import com.amazonaws.services.sqs.model.Message;
+import com.amazonaws.services.sqs.model.MessageAttributeValue;
 import com.google.common.collect.Maps;
 import com.google.inject.Inject;
 import hudson.DescriptorExtensionList;
@@ -62,6 +63,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import javax.xml.bind.DatatypeConverter;
 
 import static io.relution.jenkins.awssqs.util.JobInfoHelpers.asParameterizedJobMixIn;
 
@@ -193,17 +195,41 @@ public class SQSTrigger extends Trigger<Job<?, ?>> implements io.relution.jenkin
     private void handleMessage(final Message message) {
         Log.info("Message received...");
         Map<String, String> jobParams = new HashMap<>();
-
+/*
         // add job parameters from the message (N.B. won't work post Jenkins v2+) @see https://wiki.jenkins-ci.org/display/JENKINS/Plugins+affected+by+fix+for+SECURITY-170
         for (Map.Entry<String, String> att : message.getAttributes().entrySet()) {
             if (StringUtils.isNotBlank(att.getKey())) {
                 jobParams.put("sqs_" + att.getKey(), att.getValue());
             }
         }
+*/
         jobParams.put("sqs_body", message.getBody());
         jobParams.put("sqs_messageId", message.getMessageId());
         jobParams.put("sqs_receiptHandle", message.getReceiptHandle());
         jobParams.put("sqs_bodyMD5", message.getMD5OfBody());
+
+        for (Map.Entry<String, MessageAttributeValue> att : message.getMessageAttributes().entrySet()) {
+            if (StringUtils.isNotBlank(att.getKey())) {
+                MessageAttributeValue mavalue = att.getValue();
+                String svalue;
+                switch (mavalue.getDataType()) {
+                    case "String":
+                        svalue = mavalue.getStringValue();
+                        break;
+                    case "Number":
+                        svalue = mavalue.getStringValue();
+                        break;
+                    case "Binary":
+                        byte[] bytes = mavalue.getBinaryValue().array();
+                        svalue = DatatypeConverter.printHexBinary(bytes);
+                        break;
+                    default:
+                        svalue = mavalue.toString();
+                }
+                jobParams.put("sqs_" + att.getKey(), svalue);
+            }
+        }
+
         startJob(jobParams);
 
 //        final MessageParser parser = this.messageParserFactory.createParser(message);
