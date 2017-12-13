@@ -197,31 +197,33 @@ If you've set up everything correctly pushing a change to the Git repository on 
 
 ### Using SQS message attributes
 
-SQS message attributes can be passed as job parameters.
+To avoid the need of embedding the triggered job parameters into the message Body, you can passed job parameters from SQS Trigger generator process by defaining them using message attributes.
 
-Parameter names passed to job have 'sqs_' prefix like sqs_MessageParameterName
+Job parameters coming from message attributes are prefixed with `sqs_`. For example if your message attribute was `ParName`, the job will get it as `sqs_ParName`.
 
-String type and Numeric type both passed to job as is. Print example:
-```Shell
-echo "Value: ${params.sqs_MessageParameterName}
-```
+#### Message attribute types support
 
-Bimary type passed as hex string. This data could be converted back
-to byte[] inside job groovy script as
-
-```Shell
-def byte[] MsgParBinarybyteArray = javax.xml.bind.DatatypeConverter.parseHexBinary(params.sqs_MsgParBinary)
-```
-
-Array (list) types are not implemented because they are not implemented to AWS SQS API
+1. `String`, `Numeric`:
+    - Works, passed as is
+    - Usage in groovy:
+        ```
+        echo "Value: ${params.sqs_ParName}"
+        ```
+1. `Binary`:
+    - Works, passed as hex string
+    - Usage in groovy:
+        ```
+        def byte[] byteArr = javax.xml.bind.DatatypeConverter.parseHexBinary(params.sqs_ParName)
+        ```
+1. `Array`:
+    - Not Supported, not implemented in AWS SQS API
 
 Jenkins SECURITY-170 https://jenkins.io/security/advisory/2016-05-11/
 
 According to description: Jenkins now filters the build parameters based on what is defined on the job.
-But aws-sqs-plugin pass all sqs-message parameters using official method 
-jenkins.model.ParameterizedJobMixIn.scheduleBuild2() without any modifications.
+But `aws-sqs-plugin` passes all job parameters using official method `jenkins.model.ParameterizedJobMixIn.scheduleBuild2()`, thus it works out of the box, without any modifications.
 
-Note that parameters are passed but Jenkins system log contains records:
+Although, the parameters are passed, Jenkins system log still contains records:
 ```Shell
 Skipped parameter `sqs_MessageParameterName` as it is undefined on `JobName`. \
 Set `-Dhudson.model.ParametersAction.keepUndefinedParameters=true` to allow \
